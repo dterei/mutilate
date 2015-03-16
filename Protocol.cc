@@ -372,8 +372,11 @@ int ProtocolHttp::set_request(const char* key, const char* value, int len) {
 /* Handle a response from a HTTP server */
 bool ProtocolHttp::handle_response(evbuffer* input, Operation* op) {
   char *buf = NULL;
+  char buff[2]; buff[1] = '\0';
   struct evbuffer_ptr ptr;
   static size_t n_read_out;
+  size_t server_id = 0;
+  unsigned long drain;
 
   while (1) {
     switch (read_state) {
@@ -406,6 +409,22 @@ bool ProtocolHttp::handle_response(evbuffer* input, Operation* op) {
       evbuffer_drain(input, ptr.pos + LEN);
       buf = evbuffer_readln(input, &n_read_out, EVBUFFER_EOL_CRLF);
       sscanf(buf, "%ld", &n_read_out);
+      read_state = WAITING_FOR_SERVER_ID;
+      #undef LEN
+
+    case WAITING_FOR_SERVER_ID:
+      #define LEN 14
+      ptr = evbuffer_search(input, "X-Server-Name:", LEN, NULL);
+      if (ptr.pos < 0) {
+        stats.rx_bytes += evbuffer_get_length(input) - LEN + 1;
+        evbuffer_drain(input, evbuffer_get_length(input) - LEN + 1);
+        return false;
+      }
+      stats.rx_bytes += ptr.pos + LEN + 2;
+      evbuffer_drain(input, ptr.pos + LEN + 1);
+      evbuffer_remove(input, buff, 1);
+      sscanf(buff, "%ld", &server_id);
+      op->server_id = server_id;
       read_state = WAITING_FOR_HTTP_BODY;
       #undef LEN
 
@@ -415,6 +434,10 @@ bool ProtocolHttp::handle_response(evbuffer* input, Operation* op) {
       if (ptr.pos < 0) {
         stats.rx_bytes += evbuffer_get_length(input) - LEN + 1;
         evbuffer_drain(input, evbuffer_get_length(input) - LEN + 1);
+        return false;
+      }
+      drain = ptr.pos + LEN + n_read_out;
+      if (drain > evbuffer_get_length(input)) {
         return false;
       }
       stats.rx_bytes += ptr.pos + LEN;
