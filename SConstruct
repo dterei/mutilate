@@ -93,8 +93,8 @@ env = conf.Finish()
 
 ## Compilation
 
-env.Append(CFLAGS = ' -O3 -Wall -g -rdynamic')
-env.Append(CPPFLAGS = ' -O3 -Wall -g -rdynamic')
+env.Append(CFLAGS = ' -O3 -Wall -g')
+env.Append(CPPFLAGS = ' -O3 -Wall -g')
 
 env.Command(['cmdline.cc', 'cmdline.h'], 'cmdline.ggo', 'gengetopt < $SOURCE')
 

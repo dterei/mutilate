@@ -63,8 +63,10 @@ public:
   }
 
   double maximum() {
-    for (size_t i = bins.size() - 1; i >= 0; i--)
+    for (size_t i = bins.size() - 1; ; i--) {
       if (bins[i] > 0) return pow(_POW, (double) i + 0.5);
+      if (i == 0) break;
+    }
     DIE("Not implemented");
   }
 

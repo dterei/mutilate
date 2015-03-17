@@ -30,7 +30,11 @@ inline void double_tv_to_string(double val, char* buf, size_t n) {
   nowtm = localtime(&nowtime);
   
   strftime(tmpbuf, sizeof tmpbuf, "%Y/%m/%d %H:%M:%S", nowtm);
+#ifdef __APPLE__
+  snprintf(buf, n, "%s.%06d", tmpbuf, tv.tv_usec);
+#else
   snprintf(buf, n, "%s.%06ld", tmpbuf, tv.tv_usec);
+#endif
 }
 
 inline double get_time_accurate() {
