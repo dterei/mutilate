@@ -23,10 +23,10 @@ public:
   virtual bool handle_response(evbuffer* input, Operation* op) = 0;
 
 protected:
-  options_t       opts;
-  server_t&       serv;
-  bufferevent*    bev;
-  ConnectionStats stats;
+  options_t        opts;
+  server_t&        serv;
+  bufferevent*     bev;
+  ConnectionStats& stats;
 };
 
 class ProtocolAscii : public Protocol {

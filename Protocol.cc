@@ -439,8 +439,8 @@ bool ProtocolHttp::handle_response(evbuffer* input, Operation* op) {
       if (drain > evbuffer_get_length(input)) {
         return false;
       }
-      stats.rx_bytes += ptr.pos + LEN;
-      evbuffer_drain(input, ptr.pos + LEN + op->len);
+      stats.rx_bytes += drain;
+      evbuffer_drain(input, drain);
       read_state = WAITING_FOR_HTTP;
       #undef LEN
       return true;
