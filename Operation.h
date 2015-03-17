@@ -17,6 +17,7 @@ public:
   double start_time, end_time, switch_time;
   uint8_t switched = 0;
   uint8_t server_id = 0;
+  uint16_t len = 0;
 
   double time() const { return (end_time - start_time) * 1000000; }
 

@@ -374,9 +374,8 @@ bool ProtocolHttp::handle_response(evbuffer* input, Operation* op) {
   char *buf = NULL;
   char buff[2]; buff[1] = '\0';
   struct evbuffer_ptr ptr;
-  static size_t n_read_out;
-  size_t server_id = 0;
-  unsigned long drain;
+  size_t n_read_out = 0, server_id = 0;
+  uint32_t drain;
 
   while (1) {
     switch (read_state) {
@@ -408,7 +407,7 @@ bool ProtocolHttp::handle_response(evbuffer* input, Operation* op) {
       stats.rx_bytes += ptr.pos + LEN;
       evbuffer_drain(input, ptr.pos + LEN);
       buf = evbuffer_readln(input, &n_read_out, EVBUFFER_EOL_CRLF);
-      sscanf(buf, "%ld", &n_read_out);
+      sscanf(buf, "%hu", &op->len);
       read_state = WAITING_FOR_SERVER_ID;
       #undef LEN
 
@@ -436,12 +435,12 @@ bool ProtocolHttp::handle_response(evbuffer* input, Operation* op) {
         evbuffer_drain(input, evbuffer_get_length(input) - LEN + 1);
         return false;
       }
-      drain = ptr.pos + LEN + n_read_out;
+      drain = ptr.pos + LEN + op->len;
       if (drain > evbuffer_get_length(input)) {
         return false;
       }
       stats.rx_bytes += ptr.pos + LEN;
-      evbuffer_drain(input, ptr.pos + LEN + n_read_out);
+      evbuffer_drain(input, ptr.pos + LEN + op->len);
       read_state = WAITING_FOR_HTTP;
       #undef LEN
       return true;
